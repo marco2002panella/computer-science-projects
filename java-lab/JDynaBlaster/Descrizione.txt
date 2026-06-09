@@ -1,0 +1,5 @@
+Questo progetto universitario consiste nello sviluppo di un gioco con degli obiettivi ben chiari: tenere la logica di gioco completamente distaccata 
+dalla logica grafica passando per un software controller che comunica tra i due. Si utilizza javaFx per il conseguimento degli obiettivi grafici mentre 
+per gestire la logica interna usiamo la programmazione java orientata agli oggetti ma con particolare attenzione a utilizzo di pattern per lo sviluppo 
+software integrale. Strategy pattern e observer-observable pattern sono parte fondamentale di questo progetto per la comunicazione tra i pezzi software 
+sviluppati.
