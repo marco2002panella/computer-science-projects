@@ -1,0 +1,116 @@
+
+.chat-main-layout, .chat-sidebar, .custom-navbar {
+    box-sizing: border-box !important;
+}
+
+.search-title {
+  margin-top: 0;      /* Rimuove lo spazio sopra la scritta alzandola */
+  margin-bottom: 4px; /* Lascia un piccolo spazio sotto, verso il testo secondario */
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+}
+
+/* Area principale a destra (Sfondo della chat) */
+.chat-view-area {
+  flex: 1;
+  background-image: url('https://img.freepik.com/free-vector/abstract-chat-box-shape-pattern-white-background_1017-59690.jpg?semt=ais_hybrid&w=740&q=80');
+  background-repeat: repeat;
+  background-size: 350px;
+  background-position: center;
+  overflow-y: auto;
+  min-width: 0; /* Previene bug di Flexbox con elementi larghi */
+}
+
+.chat-main-layout {
+  display: flex;
+  flex: 1;            
+  height: calc(83vh); 
+  overflow: hidden;
+  border-bottom: 1px solid #dee2e6;
+  border-top: 1px solid #dee2e6;
+}
+
+.chat-sidebar{
+    width: 300px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
+    padding: 16px;
+    height: 83vh;
+    display: flex;
+    flex-direction: column;
+
+}
+.search-section{
+    display: flex;
+    width: 315px;
+    border-right: 1px solid #dee2e6;
+    align-items: center;
+    gap: 8px;
+}
+.search-wrapper input{
+    border: 1 px solid #000000;
+    background-color: transparent;
+    outline: none;
+}
+
+.logo-icon{
+    width: 42px !important;
+    height: 42px !important;
+    object-fit: contain;
+}
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background-color: #f8f9fa;
+}
+.custom-navbar{
+    border-top: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+    padding: 8px 16px;
+}
+
+.icon-search {
+  width: 18px !important;  
+  height: 18px !important;        
+  object-fit: contain; 
+}
+
+.logout-btn{
+    justify-content: center; 
+    align-items: center;
+    gap: 4px;
+    border-color: transparent;
+    background-color: transparent;
+}
+.icon-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  border: 1px solid #000000; 
+}
+
+.action-btn {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.icon-logout {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  border: 1px solid #000000; 
+  background-color: #f8f9fa;
+}
+
+.custom-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between
+}

@@ -1,0 +1,1135 @@
+openapi: 3.0.3
+info:
+  title: WASAtext 
+  version: "1.0"
+  description: WASAtext application permette di scambiare messaggi e foto a tutti coloro che sono registrati nell'applicazione.
+servers:
+  - url: baseURL
+    description: server principale di wasa text application
+    
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: string
+  schemas:
+    reaction:
+      type: object
+      properties:
+        id:
+          type: string
+          description: id reaction ad un messaggio
+          example: "reaction123"
+        react:
+          type: string
+          enum:
+            - surprised
+            - in love
+            - I like it
+            - I don't like it
+            - fire
+          example: "fire"
+          description: una iconcina per ogni reazione dovrebbe apparire 
+        author:
+          type: string
+          description: il nome di chi ha messo la reazione
+        timestamp:
+          type: string
+          format: date
+          example: "2020-12-12"
+          description: la data della reazione al messaggio
+    message:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: "Identificativo univoco del messaggio"
+        
+        chat_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: "ID della chat privata (opzionale)"
+        
+        group_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: "ID del gruppo (opzionale)"
+        
+        AuthorId:
+          type: integer
+          format: int64
+          description: "ID dell'utente che ha scritto il messaggio"
+        
+        content:
+          type: string
+          description: "Il corpo del messaggio"
+        
+        content_type:
+          type: string
+          enum: [text, photo]
+          description: "Tipo di contenuto inviato"
+        
+        created_at:
+          type: string
+          format: date-time
+          description: "Timestamp di creazione del messaggio"
+
+        all_read:
+          type: boolean
+          description: "Indica se il messaggio è stato letto da tutti i destinatari"        
+  responses:
+    # --- 200 OK (Successo generico con stringa) ---
+    OK:
+      description: Operazione completata con successo
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Operazione riuscita"
+
+    # --- 201 Created (Successo creazione) ---
+    Created:
+      description: Risorsa creata con successo
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Risorsa creata correttamente"
+
+    # --- 400 Bad Request (Errore client/parametri) ---
+    BadRequest:
+      description: Richiesta malformata o parametri mancanti/errati
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Parametri della richiesta non validi"
+
+    # --- 401 Unauthorized (Manca autenticazione) ---
+    Unauthorized:
+      description: Autenticazione fallita o token mancante
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Non autorizzato: effettua il login"
+
+    # --- 403 Forbidden (Permessi mancanti) ---
+    Forbidden:
+      description: L'utente non ha i permessi per questa azione
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Accesso negato: azione non consentita"
+
+    # --- 404 Not Found (Risorsa inesistente) ---
+    NotFound:
+      description: La risorsa richiesta non è stata trovata
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Risorsa non trovata"
+
+    # --- 500 Internal Server Error (Errore DB o Crash) ---
+    InternalError:
+      description: Errore interno del server
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Errore interno del server: riprova più tardi"
+security:
+  - bearerAuth: []
+  
+paths:
+  /session:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: If the user does not exist, it will be created, and an identifier is returned. If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Maria
+                  pattern: 'ˆ.*?$'
+                  minLength: 3
+                  maxLength: 16
+        required: true
+      responses:
+        '201':
+          description: User log-in action successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  identifier:
+                    type: string
+                    example: "wasa123813"
+                    pattern: 'ˆ.*?$'
+                    minLength: 1
+                    maxLength: 30
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'          
+  /users/{userID}/username:
+    parameters:
+        - in: path
+          name: userID
+          required: true
+          schema:
+            type: string
+            example: "123"
+            pattern: 'ˆ.*?$'
+            minLength: 3
+            maxLength: 16
+    get:
+      tags: ["get my username"]
+      operationId: getMyUserName
+      responses:
+        '200':
+          description: username restituito correttamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    username:
+                      description: username dell'utente
+                      type: string
+                      example: "marcop"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        
+    put:
+      tags: ["set my username"]
+      operationId: setMyUserName
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "marcop"
+                  pattern: 'ˆ.*?$'
+                  minLength: 3
+                  maxLength: 30
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /users/{userID}/photo:
+      parameters:
+          - in: path
+            name: userID
+            required: true
+            schema:
+              type: string
+              pattern: 'ˆ.*?$'
+              minLength: 3
+              maxLength: 30
+              example: "utente123"
+      get:
+        tags: ["getUserPhoto"]
+        operationId: getPhoto
+        responses:
+          "200":
+            description: foto restituita correttamente
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                      description: URL per scaricare la foto
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalError'
+      put:
+        tags: ["set my photo"]
+        operationId: setMyPhoto
+        requestBody:
+          required: true
+          content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                      description: URL per scaricare la foto
+        responses:
+          "200":
+            $ref: '#/components/responses/OK'
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalError'
+  /users/{userId}/chats:
+    parameters:
+          - name: userId
+            in: path
+            required: true
+            schema:
+              type: string
+              description: un identificativo per un determinato user
+              example: "identificativo2313"
+          - name: sort
+            in: query
+            description: ordina gli oggetti in ordine cronologico  rispetto all'ultimo messaggiodescrescente di default
+            required: false
+            schema:
+              type: string
+              enum: [asc,desc]
+              default: desc
+          - name: identifier
+            in: query
+            required: false
+            description: ricevi la lista filtrata in base al nome della chat
+            schema:
+              type: string
+              example: "marco" #mostra una lista di chat che iniziano con il nome marco
+    post:
+      tags: ["create a new conversation"]
+      operationId: createConversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, user_ids]
+              properties:
+                type:
+                  type: string
+                  enum: [chat, group]
+                  description: tipo di conversazione
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 30
+                  description: nome del gruppo (solo se type = group)
+                user_ids:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                    description: lista degli utenti da aggiungere
+                    example: [2, 3, 4]
+      responses:
+        "200":
+          description: richiesta accettata
+          content:
+            application/json:
+              schema:
+                type: string
+                description: conferma creazione chat
+                example: chat aggiunta correttamente
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+    get:
+      tags: ["get conversations"]
+      operationId: getMyConversations
+      responses:
+        "200":
+          description: richiesta accettata, restituisco la lista delle chat dell'utente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      description: chat id univoco per la chat
+                      type: string
+                      example: "12345"
+                    name:
+                      description: nome della chat o del gruppo
+                      type: string
+                      example: "gruppo calcetto"
+                    photo:
+                      description: foto della chat o del gruppo
+                      type: string
+                      example: "path/to/photo"
+                    createdAt:
+                      description: data di creazione della chat
+                      type: string
+                      format: date-time
+                    IsGroup:
+                      description: specifica se la chat è un gruppo o una chat normale
+                      type: boolean
+                      example: false
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+  /users/{userId}/chats/{chatId}:
+    parameters:
+        - name: sort
+          in: query
+          description: ordina gli oggetti in ordine cronologico descrescente di default
+          required: false
+          schema:
+            type: string
+            enum: [asc,desc]
+            default: desc
+        - name: isGroup
+          in: query
+          required: false
+          description: specifica se la chat è un gruppo o una chat normale, di default è false
+          schema:
+            type: boolean
+            default: false
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: id univoco per l'user
+            example: "utente123"
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: chat id univoco per recuperare una chat
+            example: "chat123"
+    post:
+      tags: ["sendMessage"]
+      operationId: sendMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: contenuto messaggio
+                  example: "path/to/photo"
+                contentType:
+                  type: string
+                  enum: [text,photo]
+                  example: "text"
+      responses:
+        "201":
+          $ref: '#/components/responses/Created'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError' 
+    get:
+      tags: ["get conversation"]
+      operationId: getConversation
+      responses:
+        "200":
+          description: richiesta accettata, restituisco la chat
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/message"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError' 
+  /users/{userId}/chats/{chatId}/messages/{messageId}:
+    parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "message123"
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: id univoco per l'user
+            example: "utente123"
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: chat id univoco per recuperare una chat
+            example: "chat123"
+        - name: isGroup
+          in: query
+          required: false
+          description: specifica se la chat è un gruppo o una chat normale, di default è false
+          schema:
+            type: boolean
+            default: false
+        - name: targetIsGroup
+          in: query
+          required: false
+          description: specifica se la chat di destinazione è un gruppo o una chat normale, di default è false
+          schema:
+            type: boolean
+            default: false
+    post:
+      tags: ["forwardMessage"]
+      operationId: forwardMessage
+      description: inoltro un messaggio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                targetChatId:
+                  type: string
+                  description: id univoco della chat dove devo inoltrare il messaggio
+                  example: "1415"
+      responses:
+        "200":
+          description: messaggio inoltrato
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "messaggio correttamente inoltrato"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: ["deleteMessage"]
+      operationId: deleteMessage
+      description: elimina un messaggio da una chat
+      responses:
+        "200":
+          description: messaggio eliminato correttamente
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "messaggio eliminato correttamente"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError' 
+    put:
+      operationId: readMessage
+      tags: ["read message"]
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /users/{userId}/chats/{chatId}/messages/{messageId}/comments/:
+    parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "message123"
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: id univoco per l'user
+            example: "utente123"
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: chat id univoco per recuperare una chat
+            example: "chat123"
+        - name: isGroup
+          in: query
+          required: false
+          description: specifica se la chat è un gruppo o una chat normale, di default è false
+          schema:
+            type: boolean
+            default: false 
+    post:
+      tags: ["commentMessage"]
+      operationId: commentMessage
+      description: commento di un messaggio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                react:
+                  type: string
+                  enum: [surprised, in love, I like it, I don't like it, fire, ok]
+                  example: "fire"
+                  description: una iconcina per ogni reazione dovrebbe apparire 
+                author:
+                  type: string
+                  description: id di chi ha messo la reazione
+                  example: "1"
+                timestamp:
+                  type: string
+                  format: date
+                  example: "2020-12-12"
+                  description: la data della reazione al messaggio
+      responses:
+        "200":
+          description: messaggio commentato correttamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/reaction"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      tags: ["getReactions"]
+      operationId: getReactions
+      responses:
+        "200":
+          description: restituisce la lista delle reazioni ad un messaggio
+          content:
+            application/json:
+              schema:
+                type: array
+                description: lista di reazioni ad un messaggio
+                items:
+                  $ref: "#/components/schemas/reaction"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+          
+  /users/{userId}/chats/{chatId}/messages/{messageId}/comments/{reactionId}:
+    parameters:
+          - name: messageId
+            in: path
+            required: true
+            schema:
+              type: string
+              example: "message123"
+          - name: userId
+            in: path
+            required: true
+            schema:
+              type: string
+              description: id univoco per l'user
+              example: "utente123"
+          - name: chatId
+            in: path
+            required: true
+            schema:
+              type: string
+              description: chat id univoco per recuperare una chat
+              example: "chat123"
+          - name: reactionId
+            in: path
+            required: true
+            schema:
+              type: string
+              description: reaction id univoco per recuperare una reazione
+              example: "reazione123"
+          - name: isGroup
+            in: query
+            required: false
+            description: specifica se la chat è un gruppo o una chat normale, di default è false
+            schema:
+              type: boolean
+              default: false
+    delete:
+      description: elimina una reazione
+      operationId: uncommentMessage
+      tags: ["uncommentMessage"]
+      responses:
+        "200":
+          description: reazione tolta correttamente
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "reazione tolta correttamente"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+           $ref: '#/components/responses/NotFound'
+        '500':
+            $ref: '#/components/responses/InternalError'                       
+  /users/{userId}/groups/{groupId}/name:
+    parameters:
+          - name: userId
+            in: path
+            required: true
+            schema:
+              type: string
+              description: id univoco per l'user
+              example: "utente123"
+          - name: groupId
+            in: path
+            required: true
+            schema:
+              type: string
+              description: chat id univoco per recuperare un gruppo
+              example: "group123"
+    get:
+        description: restituisce nome gruppo
+        operationId: getGroupName
+        tags: ["getGroupName"]
+        responses:
+          "200":
+            description: restituisce il nome del gruppo
+            content:
+              application/json:
+                schema:
+                  type: string
+                  example: "gruppo calcetto"
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalError'
+    put:
+      description: cambia nome del gruppo
+      operationId: setGroupName
+      tags: ["setGroupName"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              example: "gruppo calcetto domenica"
+              description: nome nuovo del gruppo
+      responses:
+          "200":
+            description: nome gruppo cambiato
+            content:
+              application/json:
+                schema:
+                  type: string
+                  example: "nome gruppo cambiato"
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalError'
+  /users/{userId}/groups/{groupId}/photo:
+    parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: id univoco per l'user
+            example: "utente123"
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: chat id univoco per recuperare un gruppo
+            example: "group123"
+    get:
+      description: retrive della foto profilo del gruppo
+      operationId: getGroupPhoto
+      tags: ["getGroupPhoto"]
+      responses:
+          "200":
+            description: restituisce la foto del gruppo
+            content:
+              application/json:
+                schema:
+                  type: string
+                  example: "path/to/photo"
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalError'
+      
+    put:
+      description: cambia foto del gruppo
+      operationId: setGroupPhoto
+      tags: ["setGroupPhoto"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              example: "path/to/photo"
+      responses:
+        "200":
+          description: foto grupppo cambiata
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "foto gruppo cambiata"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /users/{userId}/groups/{groupId}/members/{targetUserId}:
+    parameters:
+        - name: targetUserId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: id univoco per l'user che si vuole aggiungere o rimuovere
+            example: "utente1231"
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: id univoco per l'user
+            example: "utente123"
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: chat id univoco per recuperare un gruppo
+            example: "group123"
+    delete:
+      description: rimuove un partecipante dal gruppo
+      operationId: removeFromGroup
+      tags: ["removeFromGroup"]
+      responses:
+        "200":
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /users/{userId}/group/{groupId}/members/:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          description: id univoco per l'user
+          example: "utente123"
+      - name: groupId
+        in: path
+        required: true
+        description: chat id univoco per recuperare una chat
+        schema:
+          type: string
+          example: "chat123"
+      - name: isGroup
+        in: query
+        required: false
+        description: specifica se la chat è un gruppo o una chat normale, di default è false
+        schema:
+          type: boolean
+          default: false
+    post:
+      description: aggiunge un partecipante al gruppo
+      operationId: addToGroup
+      tags: ["addToGroup"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              example: "utente1231"
+              description: id dell'utente che si vuole aggiungere
+      responses:
+          "200":
+            description: aggiunto correttamente al gruppo
+            content:
+              application/json:
+                schema:
+                  type: string
+                  example: "aggiunto correttamente al gruppo"
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalError'
+    delete:
+      description: lascia un gruppo
+      operationId: leaveGroup
+      tags: ["leaveGroup"]
+      responses:
+          "200":
+            description: risposta di abbandono del gruppo confermato
+            content:
+              application/json:
+                schema:
+                  type: string
+                  example: "gruppo lasciato"
+          "401":
+            $ref: '#/components/responses/Unauthorized'
+          "400":
+            $ref: '#/components/responses/BadRequest'
+          "404":
+            $ref: '#/components/responses/NotFound'
+          "500":
+            $ref: '#/components/responses/InternalError'
+    get:
+      description: restituisce la lista dei membri di una chat o gruppo
+      operationId: getChatMembers
+      tags: ["getChatMembers"]
+      responses:
+        "200":
+          description: restituisce la lista dei membri della chat o gruppo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: id univoco dell'utente membro della chat o gruppo
+                      example: "utente123"
+                    name:
+                      type: string
+                      description: nome dell'utente membro della chat o gruppo
+                      example: "Marco Rossi"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+  /users/{userId}/chats/{chatId}/admins/:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          description: id univoco per l'user
+          example: "utente123"
+      - name: chatId
+        in: path
+        required: true
+        description: chat id univoco per recuperare una chat o gruppo
+        schema:
+          type: string
+          example: "chat123"
+    get:
+      description: restituisce la lista degli amministratori di una chat o gruppo
+      operationId: getChatAdmins
+      tags: ["getChatAdmins"]
+      responses:
+          "200":
+            description: restituisce la lista degli amministratori della chat o gruppo
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: id univoco dell'utente amministratore della chat o gruppo
+                        example: "utente123"
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalError'
+  /users/:
+    post:
+      operationId: SearchByName
+      tags: ["searchByName"]
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object 
+              description: prefisso del nome che si vuole cercare
+              properties:
+                prefix:
+                  type: string 
+      responses:
+        '200':
+          description: restituisco la lista di oggetti users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    -Id:
+                      type: integer
+                    -Username:
+                      type: string
+                    -Image_Url:
+                      type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    

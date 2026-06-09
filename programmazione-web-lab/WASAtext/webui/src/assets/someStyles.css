@@ -1,0 +1,25 @@
+.choice-buttons{
+    display:flex;
+    align-items: center;
+}
+
+.standard-button{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+
+  /* border box stile card */
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+
+  transition: all 0.2s ease;
+}
+
+.standard-button:hover {
+  background-color: #f5f5f5;
+  transform: translateY(-1px);
+}
