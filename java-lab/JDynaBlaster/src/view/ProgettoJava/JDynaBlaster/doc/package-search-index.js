@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"m":"JDynaBlaster","l":"application"},{"m":"JDynaBlaster","l":"controller"},{"m":"JDynaBlaster","l":"dataModel"},{"m":"JDynaBlaster","l":"view"}];updateSearchResults();
