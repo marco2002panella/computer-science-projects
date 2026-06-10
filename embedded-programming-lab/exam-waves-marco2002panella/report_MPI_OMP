@@ -1,0 +1,34 @@
+
+REPORT:
+
+PROJECT ANALYSIS:
+PROBLEMA SEMPLIFICATO:
+-Il problema da affrontare richiede di lavorare parallelamente su una struttura unidirezionale, ossia un vettore.
+
+PROBLEMA DI IBRIDAZIONE:
+-Questo implica inzialmente una cosa, se io ho 8 core sul mio computer, il numero di thread per processo che andro'
+ad utilizzare sara' dettato da una formula basilare nprocessi*nThreadPerProcesso <= numero di core massimo sul computer
+
+DIREZIONE DI IBRIDAZIONE:
+-La scelta piu sensata visto che le strutture dati sono unidirezionali e anche due, ossia l array che definisce le
+storms e quello del layer è stata quella di dividere l'array tra i processi MPI che poi lavoreranno al loro interno
+con i thread OMP.
+
+
+FASI DEL PROBLEMA:
+
+PARTE UNO:
+Praticamente il programma parte con il ciclo for iniziale per il numero di storms, non parallelizzabile poiche
+dai risultati precedenti ne derivano i successivi del layer. Per ogni storm conta ogni particella e per ogni particella
+calcola la sua posizione il suo valore e per ogni cella del layer aggiorna il risultato con la funzione udpate.
+Funzione update che praticamente fa una sottrazione e una somma un rapporto e una comparazione, tutti non paralllizzabili.
+Deciso di dividere il layer tra i processi alloco una nuova dimensione per ogni processo mpi che sara' la dimensione del 
+layer diviso il numero di rank che abbiamo deciso. Il ciclo ha questo ordine, per ogni particella calcolo la particella e poi
+per ogni cella del layer mando la funzione update. Le operazioni di questo ciclo sono Nparticelle*McelleLayer quindi
+O(N*M) che al massimo è una funzione che ha MAX(N,M)^2 operazioni  se n e m sono simili in ordine di grandezza.
+Ho deciso di invertire i cicli e dividere questo numero di operazioni per il numero di thread del mio processo MPI
+con pragma omp for. Inizialmente ho N*M operazioni poi si dividono in N*M/nrank e ora ho (N*M/nrank)/nThreadPerRank
+per funzionare ovviamente nrank*nThreadPErRank<layerSize
+PARTE DUE:
+
+PARTE TRE:
